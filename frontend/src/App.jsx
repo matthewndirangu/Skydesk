@@ -1,11 +1,26 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout'
+import DashboardPage from './pages/DashboardPage'
+import SearchPage from './pages/SearchPage'
+import BookingsPage from './pages/BookingsPage'
+import BoardingPassPage from './pages/BoardingPassPage'
+import PassengersPage from './pages/PassengersPage'
+import AnalyticsPage from './pages/AnalyticsPage'
+
 function App() {
   return(
-    <div className ="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-400">✈ SkyDesk</h1>
-        <p className="text-gray-400 mt-2">Airline Ticket Management System</p>
-      </div> 
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="bookings" element={<BookingsPage />} />
+          <Route path="boarding-pass" element={<BoardingPassPage />} />
+          <Route path="passengers" element={<PassengersPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
