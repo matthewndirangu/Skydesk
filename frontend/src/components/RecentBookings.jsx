@@ -1,10 +1,5 @@
-const bookings = [
-  { ref: 'SKY-2841', passenger: 'James Carter', route: 'LHR → JFK', status: 'Confirmed', date: '08 May 2026' },
-  { ref: 'SKY-2840', passenger: 'Sofia Mendes', route: 'CDG → DXB', status: 'Pending', date: '08 May 2026' },
-  { ref: 'SKY-2839', passenger: 'Liam Chen', route: 'JFK → LAX', status: 'Boarded', date: '07 May 2026' },
-  { ref: 'SKY-2838', passenger: 'Aisha Patel', route: 'DXB → LHR', status: 'Cancelled', date: '07 May 2026' },
-  { ref: 'SKY-2837', passenger: 'Noah Williams', route: 'LAX → ORD', status: 'Confirmed', date: '06 May 2026' },
-]
+import { useEffect, useState } from 'react'
+import { getBookings, getFlights } from '../api'
 
 const statusColors = {
   Confirmed: 'bg-green-500/20 text-green-400',
@@ -14,6 +9,32 @@ const statusColors = {
 }
 
 function RecentBookings() {
+  const [bookings, setBookings] = useState([])
+  const [flights, setFlights] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    Promise.all([getBookings(), getFlights()])
+      .then(([bookingsData, flightsData]) => {
+        setBookings(bookingsData)
+        setFlights(flightsData)
+        setLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [])
+
+  function getRoute(flightId) {
+    const flight = flights.find((f) => f.id === flightId)
+    return flight ? `${flight.origin} → ${flight.destination}` : 'Unknown'
+  }
+
+  if (loading) return <div className="bg-gray-800 rounded-xl p-5 text-gray-400">Loading bookings...</div>
+  if (error) return <div className="bg-gray-800 rounded-xl p-5 text-red-400">Error: {error}</div>
+
   return (
     <div className="bg-gray-800 rounded-xl p-5">
       <h2 className="text-white font-semibold mb-4">Recent Bookings</h2>
@@ -32,13 +53,13 @@ function RecentBookings() {
             <tr key={booking.ref} className="border-b border-gray-700/50 hover:bg-gray-700/30">
               <td className="py-3 text-blue-400 font-mono">{booking.ref}</td>
               <td className="py-3 text-white">{booking.passenger}</td>
-              <td className="py-3 text-gray-300">{booking.route}</td>
+              <td className="py-3 text-gray-300">{getRoute(booking.flightId)}</td>
               <td className="py-3">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>
                   {booking.status}
                 </span>
               </td>
-              <td className="py-3 text-gray-400">{booking.date}</td>
+              <td className="py-3 text-gray-400">{booking.createdAt}</td>
             </tr>
           ))}
         </tbody>
