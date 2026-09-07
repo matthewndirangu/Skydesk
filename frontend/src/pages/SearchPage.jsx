@@ -1,58 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import FlightCard from '../components/FlightCard'
+import { getFlights } from '../api'
 
-const mockFlights = [
-  {
-    id: 1,
-    airline: 'British Airways',
-    flightNumber: 'BA 115',
-    origin: 'LHR',
-    destination: 'JFK',
-    departureTime: '09:00',
-    arrivalTime: '11:55',
-    duration: '7h 55m',
-    seatsAvailable: 14,
-    price: 420,
-  },
-  {
-    id: 2,
-    airline: 'Virgin Atlantic',
-    flightNumber: 'VS 003',
-    origin: 'LHR',
-    destination: 'JFK',
-    departureTime: '11:30',
-    arrivalTime: '14:20',
-    duration: '7h 50m',
-    seatsAvailable: 6,
-    price: 389,
-  },
-  {
-    id: 3,
-    airline: 'American Airlines',
-    flightNumber: 'AA 106',
-    origin: 'LHR',
-    destination: 'JFK',
-    departureTime: '14:15',
-    arrivalTime: '17:10',
-    duration: '7h 55m',
-    seatsAvailable: 23,
-    price: 355,
-  },
-  {
-    id: 4,
-    airline: 'Delta Airlines',
-    flightNumber: 'DL 402',
-    origin: 'LHR',
-    destination: 'JFK',
-    departureTime: '18:45',
-    arrivalTime: '21:40',
-    duration: '7h 55m',
-    seatsAvailable: 2,
-    price: 512,
-  },
-]
+function formatTime(isoString) {
+  const d = new Date(isoString)
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDuration(departsAt, arrivesAt) {
+  const ms = new Date(arrivesAt) - new Date(departsAt)
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  return `${hours}h ${minutes}m`
+}
 
 function SearchPage() {
+  const [allFlights, setAllFlights] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [date, setDate] = useState('')
@@ -60,9 +26,50 @@ function SearchPage() {
   const [results, setResults] = useState([])
   const [hasSearched, setHasSearched] = useState(false)
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchFlights() {
+      setLoading(true)
+      try {
+        const data = await getFlights()
+        if (cancelled) return
+        setAllFlights(data)
+        setLoading(false)
+      } catch (err) {
+        if (cancelled) return
+        setError(err.message)
+        setLoading(false)
+      }
+    }
+
+    fetchFlights()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   function handleSearch() {
-    setResults(mockFlights)
+    const filtered = allFlights.filter((f) => {
+      const matchesOrigin = !origin || f.origin.toLowerCase().includes(origin.toLowerCase())
+      const matchesDestination = !destination || f.destination.toLowerCase().includes(destination.toLowerCase())
+      return matchesOrigin && matchesDestination
+    })
+
+    const withDisplayFields = filtered.map((f) => ({
+      ...f,
+      departureTime: formatTime(f.departsAt),
+      arrivalTime: formatTime(f.arrivesAt),
+      duration: formatDuration(f.departsAt, f.arrivesAt),
+    }))
+
+    setResults(withDisplayFields)
     setHasSearched(true)
+  }
+
+  if (loading) {
+    return <div className="text-gray-400">Loading flights...</div>
   }
 
   return (
@@ -73,9 +80,15 @@ function SearchPage() {
         <p className="text-gray-400 mt-1">Search available flights by route and date.</p>
       </div>
 
+      {error && (
+        <div className="bg-red-500/10 text-red-400 text-sm rounded-lg px-4 py-2">
+          Error: {error}
+        </div>
+      )}
+
       <div className="bg-gray-800 rounded-xl p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           <div className="flex flex-col gap-1">
             <label className="text-gray-400 text-sm">From</label>
             <input

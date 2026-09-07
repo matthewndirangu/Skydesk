@@ -1,20 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getFlights } from '../api'
 
 function BookingModal({ onClose, onSave }) {
+  const [flights, setFlights] = useState([])
   const [form, setForm] = useState({
     passenger: '',
-    flight: '',
+    flightId: '',
     seat: '',
-    status: 'Pending',
   })
+
+  useEffect(() => {
+    getFlights().then(setFlights).catch(() => setFlights([]))
+  }, [])
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   function handleSubmit() {
-    if (!form.passenger || !form.flight || !form.seat) return
-    onSave(form)
+    if (!form.passenger || !form.flightId || !form.seat) return
+    onSave({ ...form, flightId: Number(form.flightId) })
     onClose()
   }
 
@@ -46,14 +51,20 @@ function BookingModal({ onClose, onSave }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-gray-400 text-sm">Flight Number</label>
-            <input
-              name="flight"
-              value={form.flight}
+            <label className="text-gray-400 text-sm">Flight</label>
+            <select
+              name="flightId"
+              value={form.flightId}
               onChange={handleChange}
-              placeholder="e.g. BA 115"
               className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            >
+              <option value="">Select a flight</option>
+              {flights.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.flightNumber} — {f.origin} → {f.destination}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -65,21 +76,6 @@ function BookingModal({ onClose, onSave }) {
               placeholder="e.g. 14A"
               className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-gray-400 text-sm">Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option>Pending</option>
-              <option>Confirmed</option>
-              <option>Boarded</option>
-              <option>Cancelled</option>
-            </select>
           </div>
 
         </div>
