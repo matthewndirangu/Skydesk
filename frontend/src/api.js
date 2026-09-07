@@ -42,3 +42,8 @@ export async function deleteBooking(id) {
   if (!res.ok) throw new Error('Failed to delete booking')
   return res.json()
 }
+export async function getPassengers() {
+  const res = await fetch(`${BASE_URL}/passengers`)
+  if (!res.ok) throw new Error('Failed to fetch passengers')
+  return res.json()
+}

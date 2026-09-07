@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import StatusBadge from '../components/StatusBadge'
 import BookingModal from '../components/BookingModal'
-import { getBookings, getFlights, createBooking, deleteBooking } from '../api'
+import { getBookings, getFlights, getPassengers, createBooking, deleteBooking } from '../api'
 
 const filters = ['All', 'Confirmed', 'Pending', 'Boarded', 'Cancelled']
 
 function BookingsPage() {
   const [bookings, setBookings] = useState([])
   const [flights, setFlights] = useState([])
+  const [passengers, setPassengers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeFilter, setActiveFilter] = useState('All')
@@ -20,10 +21,15 @@ function BookingsPage() {
     async function fetchData() {
       setLoading(true)
       try {
-        const [bookingsData, flightsData] = await Promise.all([getBookings(), getFlights()])
+        const [bookingsData, flightsData, passengersData] = await Promise.all([
+          getBookings(),
+          getFlights(),
+          getPassengers(),
+        ])
         if (cancelled) return
         setBookings(bookingsData)
         setFlights(flightsData)
+        setPassengers(passengersData)
         setLoading(false)
       } catch (err) {
         if (cancelled) return
@@ -41,9 +47,14 @@ function BookingsPage() {
 
   async function refreshData() {
     try {
-      const [bookingsData, flightsData] = await Promise.all([getBookings(), getFlights()])
+      const [bookingsData, flightsData, passengersData] = await Promise.all([
+        getBookings(),
+        getFlights(),
+        getPassengers(),
+      ])
       setBookings(bookingsData)
       setFlights(flightsData)
+      setPassengers(passengersData)
     } catch (err) {
       setError(err.message)
     }
@@ -53,12 +64,22 @@ function BookingsPage() {
     return flights.find((f) => f.id === flightId)
   }
 
+  function getPassenger(passengerId) {
+    return passengers.find((p) => p.id === passengerId)
+  }
+
+  function getPassengerName(passengerId) {
+    const p = getPassenger(passengerId)
+    return p ? `${p.firstName} ${p.lastName}` : 'Unknown'
+  }
+
   const filtered = bookings.filter((b) => {
     const flight = getFlight(b.flightId)
     const flightNumber = flight ? flight.flightNumber : ''
+    const passengerName = getPassengerName(b.passengerId)
     const matchesFilter = activeFilter === 'All' || b.status === activeFilter
     const matchesSearch =
-      b.passenger.toLowerCase().includes(search.toLowerCase()) ||
+      passengerName.toLowerCase().includes(search.toLowerCase()) ||
       b.ref.toLowerCase().includes(search.toLowerCase()) ||
       flightNumber.toLowerCase().includes(search.toLowerCase())
     return matchesFilter && matchesSearch
@@ -76,7 +97,7 @@ function BookingsPage() {
   async function handleSave(form) {
     try {
       await createBooking({
-        passenger: form.passenger,
+        passengerId: form.passengerId,
         flightId: form.flightId,
         seat: form.seat,
       })
@@ -167,7 +188,7 @@ function BookingsPage() {
                     className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
                   >
                     <td className="px-5 py-3 text-blue-400 font-mono">{booking.ref}</td>
-                    <td className="px-5 py-3 text-white">{booking.passenger}</td>
+                    <td className="px-5 py-3 text-white">{getPassengerName(booking.passengerId)}</td>
                     <td className="px-5 py-3 text-gray-300">{flight ? flight.flightNumber : 'Unknown'}</td>
                     <td className="px-5 py-3 text-gray-300">
                       {flight ? `${flight.origin} → ${flight.destination}` : 'Unknown'}

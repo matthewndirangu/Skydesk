@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
-import { getFlights } from '../api'
+import { getFlights, getPassengers } from '../api'
 
 function BookingModal({ onClose, onSave }) {
   const [flights, setFlights] = useState([])
+  const [passengers, setPassengers] = useState([])
   const [form, setForm] = useState({
-    passenger: '',
+    passengerId: '',
     flightId: '',
     seat: '',
   })
 
   useEffect(() => {
     getFlights().then(setFlights).catch(() => setFlights([]))
+    getPassengers().then(setPassengers).catch(() => setPassengers([]))
   }, [])
 
   function handleChange(e) {
@@ -18,8 +20,12 @@ function BookingModal({ onClose, onSave }) {
   }
 
   function handleSubmit() {
-    if (!form.passenger || !form.flightId || !form.seat) return
-    onSave({ ...form, flightId: Number(form.flightId) })
+    if (!form.passengerId || !form.flightId || !form.seat) return
+    onSave({
+      passengerId: Number(form.passengerId),
+      flightId: Number(form.flightId),
+      seat: form.seat,
+    })
     onClose()
   }
 
@@ -40,14 +46,20 @@ function BookingModal({ onClose, onSave }) {
         <div className="flex flex-col gap-4">
 
           <div className="flex flex-col gap-1">
-            <label className="text-gray-400 text-sm">Passenger Name</label>
-            <input
-              name="passenger"
-              value={form.passenger}
+            <label className="text-gray-400 text-sm">Passenger</label>
+            <select
+              name="passengerId"
+              value={form.passengerId}
               onChange={handleChange}
-              placeholder="e.g. James Carter"
               className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            >
+              <option value="">Select a passenger</option>
+              {passengers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.firstName} {p.lastName}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col gap-1">

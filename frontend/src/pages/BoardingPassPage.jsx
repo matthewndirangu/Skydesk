@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import BoardingPass from '../components/BoardingPass'
-import { getBookings, getFlights } from '../api'
+import { getBookings, getFlights, getPassengers } from '../api'
 
 function formatTime(isoString) {
   const d = new Date(isoString)
@@ -22,6 +22,7 @@ function formatDate(isoString) {
 function BoardingPassPage() {
   const [bookings, setBookings] = useState([])
   const [flights, setFlights] = useState([])
+  const [passengers, setPassengers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedId, setSelectedId] = useState('')
@@ -32,10 +33,15 @@ function BoardingPassPage() {
     async function fetchData() {
       setLoading(true)
       try {
-        const [bookingsData, flightsData] = await Promise.all([getBookings(), getFlights()])
+        const [bookingsData, flightsData, passengersData] = await Promise.all([
+          getBookings(),
+          getFlights(),
+          getPassengers(),
+        ])
         if (cancelled) return
         setBookings(bookingsData)
         setFlights(flightsData)
+        setPassengers(passengersData)
         setLoading(false)
       } catch (err) {
         if (cancelled) return
@@ -51,6 +57,11 @@ function BoardingPassPage() {
     }
   }, [])
 
+  function getPassengerName(passengerId) {
+    const p = passengers.find((p) => p.id === passengerId)
+    return p ? `${p.firstName} ${p.lastName}` : 'Unknown'
+  }
+
   const eligibleBookings = bookings.filter(
     (b) => b.status === 'Confirmed' || b.status === 'Boarded'
   )
@@ -62,7 +73,7 @@ function BoardingPassPage() {
     return {
       id: booking.id,
       ref: booking.ref,
-      passenger: booking.passenger,
+      passenger: getPassengerName(booking.passengerId),
       flight: flight.flightNumber,
       origin: flight.origin,
       originCity: flight.origin,
@@ -114,7 +125,7 @@ function BoardingPassPage() {
               const flight = flights.find((f) => f.id === b.flightId)
               return (
                 <option key={b.id} value={b.id}>
-                  {b.ref} — {b.passenger} {flight ? `(${flight.origin} → ${flight.destination})` : ''}
+                  {b.ref} — {getPassengerName(b.passengerId)} {flight ? `(${flight.origin} → ${flight.destination})` : ''}
                 </option>
               )
             })}
