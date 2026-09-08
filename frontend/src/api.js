@@ -64,3 +64,8 @@ export async function deletePassenger(id) {
   if (!res.ok) throw new Error('Failed to delete passenger')
   return res.json()
 }
+export async function getAnalytics() {
+  const res = await fetch(`${BASE_URL}/analytics/summary`)
+  if (!res.ok) throw new Error('Failed to fetch analytics')
+  return res.json()
+}

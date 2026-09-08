@@ -1,21 +1,13 @@
-const routes = [
-  { route: 'LHR → JFK', bookings: 48, revenue: 20160 },
-  { route: 'DXB → LHR', bookings: 35, revenue: 12250 },
-  { route: 'CDG → DXB', bookings: 29, revenue: 8990 },
-  { route: 'JFK → LAX', bookings: 24, revenue: 6480 },
-  { route: 'FRA → SIN', bookings: 18, revenue: 9720 },
-]
 
-const maxBookings = Math.max(...routes.map((r) => r.bookings))
-
-function TopRoutes() {
+function TopRoutes({data}) {
+  const maxBookings = data.length > 0 ? Math.max(...data.map((r) => r.bookings)) : 1
   return (
     <div className="bg-gray-800 rounded-xl p-5">
       <h2 className="text-white font-semibold mb-1">Top Routes</h2>
       <p className="text-gray-400 text-xs mb-5">By booking volume</p>
 
       <div className="flex flex-col gap-4">
-        {routes.map((r) => (
+        {data.map((r) => (
           <div key={r.route}>
             <div className="flex items-center justify-between mb-1">
               <p className="text-white text-sm font-medium">{r.route}</p>

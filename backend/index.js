@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import flightsRouter from './routes/flights.js';
 import bookingsRouter from './routes/bookings.js';
 import passengersRouter from './routes/passengers.js'
+import analyticsRouter from './routes/analytics.js'
 
 dotenv.config()
 
@@ -17,6 +18,7 @@ app.use(express.json())
 app.use('/api/flights', flightsRouter)
 app.use('/api/bookings', bookingsRouter)
 app.use('/api/passengers', passengersRouter)
+app.use('/api/analytics', analyticsRouter)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'SkyDesk API is running' })

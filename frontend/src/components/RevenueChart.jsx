@@ -8,15 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const revenueData = [
-  { month: 'Nov', revenue: 6200 },
-  { month: 'Dec', revenue: 9800 },
-  { month: 'Jan', revenue: 7400 },
-  { month: 'Feb', revenue: 8100 },
-  { month: 'Mar', revenue: 11200 },
-  { month: 'Apr', revenue: 9600 },
-  { month: 'May', revenue: 12800 },
-]
+
 
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
@@ -32,13 +24,13 @@ function CustomTooltip({ active, payload, label }) {
   return null
 }
 
-function RevenueChart() {
+function RevenueChart({data}) {
   return (
     <div className="bg-gray-800 rounded-xl p-5">
       <h2 className="text-white font-semibold mb-1">Monthly Revenue</h2>
       <p className="text-gray-400 text-xs mb-5">Last 7 months</p>
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={revenueData} barSize={32}>
+        <BarChart data={data} barSize={32}>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="#374151"
